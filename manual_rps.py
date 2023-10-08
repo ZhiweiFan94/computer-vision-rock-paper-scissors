@@ -1,27 +1,24 @@
-#%% task1 --milestone 4
 import random
-
-
-def get_computer_choice():
-    return random.choice(['Rock','Paper','Scissors'])
-
-def get_user_choice():
-    user_choice = input('Your choice: ')
-    return user_choice
-
-def get_winner(computer_choice, user_choice):
-    if (computer_choice == 'Rock' and user_choice =='Scissors') or (computer_choice == 'Paper' and user_choice =='Rock') or (computer_choice == 'Scissors' and user_choice =='Paper'):
-        print('You lost!')
-    elif (user_choice == 'Rock' and computer_choice =='Scissors') or (user_choice == 'Paper' and computer_choice =='Rock') or (user_choice == 'Scissors' and computer_choice =='Paper'):
-        print('You won!')
-    else:
-        print('It is a tie!')
-
 def play():
-    computer_choice = get_computer_choice()
-    user_choice = get_user_choice()
-    get_winner(computer_choice, user_choice)
-
-
+    """
+    Simple logic of comparing win, lose, tie for RPS game
+    Users are asked to make a choice from ['Rock','Paper','Scissors']
+    """
+    RPS_choices = ['Rock','Paper','Scissors']
+    computer_choice = random.choice(RPS_choices)
+    user_choice = input('Your choice: ')
+    win_rule = {
+        'Rock':'Scissors',
+        'Scissors':'Paper',
+        'Paper':'rock'
+    }
+    if user_choice not in RPS_choices:
+        print('Invalid choice!')
+    elif user_choice == computer_choice:
+        print(f'It is a tie! Robot is {computer_choice}')
+    elif win_rule[user_choice] == computer_choice:
+        print(f'You won! Robot is {computer_choice}')
+    else:
+        print(f'You lost! Robot is {computer_choice}')
+#play a game!
 play()
-# %%

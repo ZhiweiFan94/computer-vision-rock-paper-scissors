@@ -1,35 +1,49 @@
 import cv2
-from keras.models import load_model
-import numpy as np
 import time
 import random
+import numpy as np
+from keras.models import load_model
+
 
 def get_prediction(prediction):
-    guess = max(prediction[0])
+    """
+    Get prediction from gestures with highest probability
+    """
     guess_idx = np.argmax(prediction[0])
     input_list = ['Rock', 'Paper', 'Scissors', 'Nothing']
     user_input = input_list[guess_idx]
     return user_input
-    # print(f'The user selects {user_input} at chance of {guess}')
-
+ 
 def get_computer_choice():
     return random.choice(['Rock', 'Paper', 'Scissors'])
 
 def get_winner(computer_choice, user_choice):
-    if (computer_choice == 'Rock' and user_choice == 'Scissors') or (computer_choice == 'Paper' and user_choice == 'Rock') or (computer_choice == 'Scissors' and user_choice == 'Paper'):
-        return 'You lost'
-    elif (user_choice == 'Rock' and computer_choice == 'Scissors') or (user_choice == 'Paper' and computer_choice == 'Rock') or (user_choice == 'Scissors' and computer_choice == 'Paper'):
-        return 'You win'
-    elif (user_choice == computer_choice):
+    """
+    Compare the choices and return the winner of the game
+    """
+    RPS_choices = ['Rock', 'Paper', 'Scissors']
+    win_rule = {
+        'Rock':'Scissors',
+        'Scissors':'Paper',
+        'Paper':'rock'
+    }
+    if user_choice not in RPS_choices:
+        return 'Nothing'
+    elif user_choice == computer_choice:
         return 'It is a tie!'
+    elif win_rule[user_choice] == computer_choice:
+        return 'You won'
     else:
-        return 'what\'s your decision? Nothing detected.'
+        return 'You lost'
 
 def play(prediction):
+    """
+    Start the RPS game
+    """
     computer_choice = get_computer_choice()
     user_choice = get_prediction(prediction)
     outcome = get_winner(computer_choice, user_choice)
-    return computer_choice, user_choice, outcome
+    return computer_choice, user_choice, outcome 
 
 model = load_model('keras_model.h5')
 cap = cv2.VideoCapture(0)
@@ -44,6 +58,7 @@ computer_wins = 0
 user_wins = 0
 result = 0
 
+#play the game until certain condition is met: when one side firstly becomes winner 3 times
 while True:
     ret, frame = cap.read()
     resized_frame = cv2.resize(frame, (224, 224), interpolation=cv2.INTER_AREA)
@@ -51,38 +66,30 @@ while True:
     normalized_image = (image_np.astype(np.float32) / 127.0) - 1
     data[0] = normalized_image
     prediction = model.predict(data)
-    
-    # print(prediction)
+
     cv2.putText(frame, f"Computer wins: {computer_wins} ", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
     cv2.putText(frame, f"You win: {user_wins}", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
     cv2.imshow('frame', frame)
 
     elapsed_time = time.time() - start_time
-    if elapsed_time >= 3:
+
+    if elapsed_time >= countdown: #set time gap of 3 seconds to capture the users gesture
         computer, user, result = play(prediction)
-        print(f'You chose {user} and computer chooses {computer}, so {result}')
-        
+        print(f'You chose {user} and computer chooses {computer}, so {result}')     
         if result == 'You win':
             user_wins += 1
         elif result == 'You lost':
-            computer_wins += 1
-        
+            computer_wins += 1      
         start_time = time.time()
-
-
-
 
     if user_wins == 3:
         print('You reaches 3 wins firstly, congrats!')
         break
-
     if computer_wins == 3:
         print('Computer reaches 3 wins firstly, try again.')
         break
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv2.waitKey(1) & 0xFF == ord('q'): #use key 'q' to exit the game
         break
 
-
 cap.release()
-cv2.destroyAllWindows()
+cv2.destroyAllWindows() 
